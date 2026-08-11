@@ -8,16 +8,16 @@
 
 ```env
 # 定制订阅链接使用的 subconverter 域名（不要在末尾添加 /sub）
-VITE_SUBCONVERTER_DEFAULT_BACKEND="https://api.example.com"
+VITE_SUBCONVERTER_DEFAULT_BACKEND="https://api.appfile.top"
 
 # 保持使用 suosuo.de 官方短链
 VITE_MYURLS_API="https://suosuo.de/short"
 ```
 
-将 `https://api.example.com` 换成自己的 subconverter 域名，然后重新构建。生成的定制订阅地址格式为：
+当前默认使用 `https://api.appfile.top` 作为 subconverter 域名。修改该配置后需要重新构建。生成的定制订阅地址格式为：
 
 ```text
-https://api.example.com/sub?target=clash&url=...
+https://api.appfile.top/sub?target=clash&url=...
 ```
 
 短链仍由 `https://suosuo.de/short` 生成。
