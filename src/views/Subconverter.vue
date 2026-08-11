@@ -1,16 +1,32 @@
 <template>
-  <div>
-    <el-row style="margin-top: 10px">
-      <el-col>
-        <el-card>
-          <div slot="header">
-            STTlink 订阅转换
-            <svg-icon icon-class="github" style="margin-left: 20px" @click="goToProject" />
+  <div class="stt-page">
+    <header class="hero">
+      <div class="hero__inner">
+        <div class="brand-mark">S</div>
+        <div class="hero__copy">
+          <h1>STTlink</h1>
+          <p>简单、快速的订阅链接转换工具</p>
+        </div>
+        <button class="project-link" type="button" @click="goToProject" aria-label="打开项目仓库">
+          <svg-icon icon-class="github" />
+          <span>GitHub</span>
+        </button>
+      </div>
+    </header>
 
-            <div style="display: inline-block; position:absolute; right: 20px">{{ backendVersion }}</div>
+    <main class="page-shell">
+    <el-row>
+      <el-col>
+        <el-card class="converter-card" shadow="never">
+          <div slot="header" class="card-heading">
+            <div>
+              <h2>订阅转换</h2>
+              <p>填写订阅信息，生成适用于不同客户端的配置链接</p>
+            </div>
+            <span class="version-badge">{{ backendVersion || 'Backend' }}</span>
           </div>
           <el-container>
-            <el-form :model="form" label-width="140px" label-position="left" style="width: 100%">
+            <el-form class="converter-form" :model="form" label-width="140px" label-position="left">
               <el-form-item label="模式设置:">
                 <el-radio v-model="advanced" label="1">基础模式</el-radio>
                 <el-radio v-model="advanced" label="2">进阶模式</el-radio>
@@ -25,29 +41,38 @@
                 </el-select>
               </el-form-item>
 
+              <el-form-item label="节点过滤:">
+                <el-select v-model="nodeRegion" style="width: 100%">
+                  <el-option v-for="item in regionOptions" :key="item.value"
+                    :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+
               <div v-if="advanced === '2'">
-                <el-form-item label="后端地址:">
+                <el-form-item label="Backend 定制:">
                   <el-autocomplete style="width: 100%" v-model="form.customBackend" :fetch-suggestions="backendSearch"
-                    placeholder="动动小手，（建议）自行搭建后端服务。例：http://127.0.0.1:25500/sub?">
-                    <el-button slot="append" @click="gotoGayhub" icon="el-icon-link">前往项目仓库</el-button>
+                    :placeholder="currentBackend">
+                    <el-button slot="append" @click="gotoGayhub">自定义</el-button>
                   </el-autocomplete>
                 </el-form-item>
                 <el-form-item label="远程配置:">
-                  <el-select v-model="form.remoteConfig" allow-create filterable placeholder="请选择" style="width: 100%">
-                    <el-option-group v-for="group in options.remoteConfig" :key="group.label" :label="group.label">
-                      <el-option v-for="item in group.options" :key="item.value" :label="item.label"
-                        :value="item.value"></el-option>
-                    </el-option-group>
-                    <el-button slot="append" @click="gotoRemoteConfig" icon="el-icon-link">配置示例</el-button>
-                  </el-select>
+                  <div class="input-action-row">
+                    <el-select v-model="form.remoteConfig" allow-create filterable placeholder="请选择远程配置">
+                      <el-option-group v-for="group in options.remoteConfig" :key="group.label" :label="group.label">
+                        <el-option v-for="item in group.options" :key="item.value" :label="item.label"
+                          :value="item.value"></el-option>
+                      </el-option-group>
+                    </el-select>
+                    <el-button @click="gotoRemoteConfig">配置示例</el-button>
+                  </div>
                 </el-form-item>
-                <el-form-item label="Include:">
+                <el-form-item label="过滤指定节点:">
                   <el-input v-model="form.includeRemarks" placeholder="节点名包含的关键字，支持正则" />
                 </el-form-item>
-                <el-form-item label="Exclude:">
+                <el-form-item label="移除指定节点:">
                   <el-input v-model="form.excludeRemarks" placeholder="节点名不包含的关键字，支持正则" />
                 </el-form-item>
-                <el-form-item label="FileName:">
+                <el-form-item label="订阅文件名:">
                   <el-input v-model="form.filename" placeholder="返回的订阅文件名" />
                 </el-form-item>
 
@@ -60,62 +85,44 @@
                   </el-input>
                 </el-form-item>
 
-                <el-form-item label-width="0px">
-                  <el-row type="flex">
-                    <el-col>
-                      <el-checkbox v-model="form.nodeList" label="输出为 Node List" border></el-checkbox>
-                    </el-col>
-                    <el-popover placement="bottom" v-model="form.extraset">
-                      <el-row>
-                        <el-checkbox v-model="form.emoji" label="Emoji"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.scv" label="跳过证书验证"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.udp" @change="needUdp = true" label="启用 UDP"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.appendType" label="节点类型"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.sort" label="排序节点"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.fdn" label="过滤非法节点"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.expand" label="规则展开"></el-checkbox>
-                      </el-row>
-                      <el-button slot="reference">更多选项</el-button>
-                    </el-popover>
-                    <el-popover placement="bottom" style="margin-left: 10px">
-                      <el-row>
-                        <el-checkbox v-model="form.tpl.surge.doh" label="Surge.DoH"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.tpl.clash.doh" label="Clash.DoH"></el-checkbox>
-                      </el-row>
-                      <el-row>
-                        <el-checkbox v-model="form.insert" label="网易云"></el-checkbox>
-                      </el-row>
-                      <el-button slot="reference">定制功能</el-button>
-                    </el-popover>
-                    <el-popover placement="top-end" title="添加自定义转换参数" trigger="hover">
-                      <el-link type="primary" :href="subDocAdvanced" target="_blank" icon="el-icon-info">参考文档</el-link>
-                      <el-button slot="reference" @click="addCustomParam" style="margin-left: 10px">
-                        <i class="el-icon-plus"></i>
-                      </el-button>
-                    </el-popover>
-                  </el-row>
+                <el-form-item label="输出格式:">
+                  <el-checkbox v-model="form.nodeList">输出为 Node List</el-checkbox>
                 </el-form-item>
+
+                <section class="option-panel">
+                  <h4>基础选项</h4>
+                  <div class="option-grid">
+                    <el-checkbox v-model="form.emoji">Emoji</el-checkbox>
+                    <el-checkbox v-model="form.scv">跳过证书验证</el-checkbox>
+                    <el-checkbox v-model="form.udp" @change="needUdp = true">启用 UDP</el-checkbox>
+                    <el-checkbox v-model="form.appendType">节点类型</el-checkbox>
+                    <el-checkbox v-model="form.sort">排序节点</el-checkbox>
+                    <el-checkbox v-model="form.fdn">过滤非法节点</el-checkbox>
+                    <el-checkbox v-model="form.expand">规则展开</el-checkbox>
+                  </div>
+                </section>
+
+                <section class="option-panel">
+                  <h4>定制功能</h4>
+                  <div class="option-grid option-grid--custom">
+                    <el-checkbox v-model="form.tpl.surge.doh">Surge.DoH</el-checkbox>
+                    <el-checkbox v-model="form.tpl.clash.doh">Clash.DoH</el-checkbox>
+                    <el-checkbox v-model="form.insert">网易云</el-checkbox>
+                    <el-button size="small" icon="el-icon-plus" @click="addCustomParam">添加参数</el-button>
+                    <el-link type="primary" :href="subDocAdvanced" target="_blank">文档</el-link>
+                  </div>
+                </section>
               </div>
 
               <div style="margin-top: 50px"></div>
 
-              <el-divider content-position="center">
-                <i class="el-icon-magic-stick"></i>
-              </el-divider>
+              <div class="result-heading">
+                <span class="result-heading__icon"><i class="el-icon-magic-stick"></i></span>
+                <div>
+                  <h3>生成结果</h3>
+                  <p>生成的定制订阅链接和官方短链接</p>
+                </div>
+              </div>
 
               <el-form-item label="定制订阅:">
                 <el-input class="copy-content" disabled v-model="customSubUrl">
@@ -183,6 +190,7 @@
         </el-card>
       </el-col>
     </el-row>
+    </main>
 
     <!-- 配置上传对话框 -->
     <ConfigUploadDialog
@@ -253,6 +261,16 @@ export default {
       dialogLoadConfigVisible: false,
       uploadConfig: "",
       subDocAdvanced: CONSTANTS.DOC_ADVANCED,
+      nodeRegion: 'all',
+      regionOptions: [
+        { label: '全部节点', value: 'all' },
+        { label: '亚洲节点', value: 'asia' },
+        { label: '美洲节点', value: 'america' },
+        { label: '欧洲节点', value: 'europe' },
+        { label: '非洲节点', value: 'africa' },
+        { label: '常用节点 (HK/TW/SG/JP/US)', value: 'popular' },
+        { label: '游戏节点', value: 'game' }
+      ],
 
       // 是否为 PC 端
       isPC: true,
@@ -285,10 +303,29 @@ export default {
 
     currentBackend() {
       return this.form.customBackend || CONSTANTS.DEFAULT_BACKEND;
+    },
+
+    conversionForm() {
+      const filters = {
+        all: '',
+        asia: '香港|HK|台湾|TW|新加坡|SG|日本|JP|韩国|KR|印度|IN|泰国|TH',
+        america: '美国|US|加拿大|CA|巴西|BR|阿根廷|AR|墨西哥|MX',
+        europe: '英国|UK|GB|德国|DE|法国|FR|荷兰|NL|俄罗斯|RU|欧洲|EU',
+        africa: '南非|ZA|埃及|EG|非洲|Africa',
+        popular: '香港|HK|台湾|TW|新加坡|SG|日本|JP|美国|US',
+        game: '游戏|Game|Gaming|低延迟'
+      };
+      const regionFilter = filters[this.nodeRegion];
+      const manualFilter = this.form.includeRemarks;
+      const includeRemarks = regionFilter && manualFilter
+        ? `(?=.*(?:${regionFilter}))(?=.*(?:${manualFilter}))`
+        : regionFilter || manualFilter;
+
+      return { ...this.form, includeRemarks };
     }
   },
   created() {
-    document.title = "Subscription Converter";
+    document.title = "STTlink 订阅转换";
     this.isPC = this.$getOS().isPc;
 
     // 获取 url cache
@@ -346,7 +383,7 @@ export default {
     },
 
     makeUrlClick() {
-      const url = this.makeUrl(this.form, this.advanced, this.processedSubUrl, this.currentBackend, this.customParams, this.needUdp);
+      const url = this.makeUrl(this.conversionForm, this.advanced, this.processedSubUrl, this.currentBackend, this.customParams, this.needUdp);
       if (url) {
         this.customSubUrl = url;
         this.$copyText(this.customSubUrl);
@@ -494,3 +531,306 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.stt-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(99, 102, 241, .12), transparent 28%),
+    radial-gradient(circle at 90% 30%, rgba(14, 165, 233, .1), transparent 30%),
+    #f5f7fb;
+  color: #172033;
+  padding-bottom: 56px;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(125deg, #172554 0%, #3730a3 48%, #2563eb 100%);
+  color: #fff;
+  padding: 34px 24px 86px;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  right: -90px;
+  top: -230px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  box-shadow: 0 0 0 44px rgba(255, 255, 255, .04), 0 0 0 88px rgba(255, 255, 255, .03);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .26);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .2);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.hero__copy h1,
+.hero__copy p,
+.card-heading h2,
+.card-heading p,
+.result-heading h3,
+.result-heading p {
+  margin: 0;
+}
+
+.hero__copy h1 {
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -.5px;
+}
+
+.hero__copy p {
+  margin-top: 5px;
+  color: rgba(255, 255, 255, .72);
+  font-size: 14px;
+}
+
+.project-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.page-shell {
+  position: relative;
+  z-index: 2;
+  max-width: 960px;
+  margin: -54px auto 0;
+  padding: 0 20px;
+}
+
+.converter-card {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(30, 41, 59, .13);
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.card-heading h2 {
+  color: #172033;
+  font-size: 21px;
+}
+
+.card-heading p,
+.result-heading p {
+  margin-top: 6px;
+  color: #8490a5;
+  font-size: 13px;
+}
+
+.version-badge {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.converter-form {
+  width: 100%;
+}
+
+.input-action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.input-action-row .el-select {
+  width: 100%;
+}
+
+.option-panel {
+  margin: 20px 0 0 140px;
+  padding: 18px 20px;
+  background: #f8faff;
+  border: 1px solid #e8edf6;
+  border-radius: 12px;
+}
+
+.option-panel h4 {
+  margin: 0 0 16px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+
+.option-grid--custom {
+  grid-template-columns: repeat(5, auto);
+  align-items: center;
+  justify-content: start;
+}
+
+::v-deep .option-grid .el-checkbox {
+  margin-right: 0;
+}
+
+.result-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 42px 0 24px;
+  padding-top: 24px;
+  border-top: 1px solid #edf0f5;
+}
+
+.result-heading__icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #2563eb);
+  border-radius: 12px;
+}
+
+.result-heading h3 {
+  font-size: 17px;
+}
+
+::v-deep .el-card__header {
+  padding: 22px 28px;
+  border-color: #edf0f5;
+}
+
+::v-deep .el-card__body {
+  padding: 30px 28px 34px;
+}
+
+::v-deep .el-form-item__label {
+  color: #3e4a5f;
+  font-weight: 600;
+}
+
+::v-deep .el-input__inner,
+::v-deep .el-textarea__inner {
+  border-color: #dce2eb;
+  border-radius: 9px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+::v-deep .el-input__inner:focus,
+::v-deep .el-textarea__inner:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .1);
+}
+
+::v-deep .el-button {
+  border-radius: 9px;
+}
+
+::v-deep .el-button--danger {
+  border-color: #4f46e5;
+  background: linear-gradient(135deg, #4f46e5, #2563eb);
+}
+
+::v-deep .el-button--primary {
+  border-color: #2563eb;
+  background: #2563eb;
+}
+
+@media (max-width: 700px) {
+  .hero {
+    padding: 26px 18px 74px;
+  }
+
+  .hero__copy h1 {
+    font-size: 24px;
+  }
+
+  .project-link span {
+    display: none;
+  }
+
+  .page-shell {
+    padding: 0 12px;
+  }
+
+  .card-heading {
+    align-items: flex-start;
+  }
+
+  .version-badge {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  ::v-deep .el-card__header,
+  ::v-deep .el-card__body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  ::v-deep .el-form-item__label {
+    width: 100% !important;
+    float: none;
+    line-height: 28px;
+  }
+
+  ::v-deep .el-form-item__content {
+    margin-left: 0 !important;
+  }
+
+  .option-panel {
+    margin-left: 0;
+  }
+
+  .option-grid,
+  .option-grid--custom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .input-action-row {
+    grid-template-columns: 1fr;
+  }
+
+  ::v-deep .el-form-item[style*="text-align: center"] .el-button {
+    width: 100% !important;
+    margin: 0 0 10px;
+  }
+}
+</style>
