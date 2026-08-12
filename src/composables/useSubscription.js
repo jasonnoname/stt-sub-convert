@@ -12,10 +12,13 @@ export function useSubscription() {
    * @returns {string} 基础URL
    */
   const buildBaseUrl = (form, processedSubUrl, currentBackend) => {
+    const isClashMeta = form.clientType === "clash-meta";
+    const target = isClashMeta ? "clash" : form.clientType;
     return currentBackend +
-      "target=" + form.clientType +
+      "target=" + target +
       "&url=" + encodeURIComponent(processedSubUrl) +
-      "&insert=" + form.insert;
+      "&insert=" + form.insert +
+      (isClashMeta ? "&new_name=true" : "");
   };
 
   /**
@@ -45,11 +48,13 @@ export function useSubscription() {
       params += "&surge.doh=true";
     }
 
-    if (form.clientType === "clash") {
+    if (form.clientType === "clash" || form.clientType === "clash-meta") {
       if (form.tpl.clash.doh === true) {
         params += "&clash.doh=true";
       }
-      params += "&new_name=" + form.new_name.toString();
+      if (form.clientType !== "clash-meta") {
+        params += "&new_name=" + form.new_name.toString();
+      }
     }
 
     return params;

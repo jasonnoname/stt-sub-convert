@@ -69,7 +69,9 @@ export function useUrlParser() {
         const ver = params.get("ver") || "4";
         form.clientType = target + "&ver=" + ver;
       } else {
-        form.clientType = target;
+        form.clientType = target === "clash" && params.get("new_name") === "true"
+          ? "clash-meta"
+          : target;
       }
 
       // Set other form properties based on the URL parameters

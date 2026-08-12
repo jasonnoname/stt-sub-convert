@@ -1,6 +1,7 @@
 // 客户端类型配置
 export const CLIENT_TYPES = {
-  Clash: "clash",
+  "Clash.Meta / Clash Verge": "clash-meta",
+  "Clash（旧版）": "clash",
   Surge: "surge&ver=4",
   Quantumult: "quan",
   QuantumultX: "quanx",
