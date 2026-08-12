@@ -50,10 +50,9 @@
 
               <div v-if="advanced === '2'">
                 <el-form-item label="Backend 定制:">
-                  <el-autocomplete style="width: 100%" v-model="form.customBackend" :fetch-suggestions="backendSearch"
-                    :placeholder="currentBackend">
-                    <el-button slot="append" @click="gotoGayhub">自定义</el-button>
-                  </el-autocomplete>
+                  <el-input style="width: 100%" :value="currentBackend" disabled>
+                    <el-button slot="append" icon="el-icon-lock">已锁定</el-button>
+                  </el-input>
                 </el-form-item>
                 <el-form-item label="远程配置:">
                   <div class="input-action-row">
@@ -302,7 +301,7 @@ export default {
     },
 
     currentBackend() {
-      return this.form.customBackend || CONSTANTS.DEFAULT_BACKEND;
+      return CONSTANTS.DEFAULT_BACKEND;
     },
 
     conversionForm() {

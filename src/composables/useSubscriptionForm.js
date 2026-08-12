@@ -43,7 +43,7 @@ export function useSubscriptionForm() {
     customParams: [],
 
     // 高级模式
-    advanced: "2",
+    advanced: "1",
 
     // 是否需要UDP
     needUdp: false,
