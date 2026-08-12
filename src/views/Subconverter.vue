@@ -2,7 +2,9 @@
   <div class="stt-page">
     <header class="hero">
       <div class="hero__inner">
-        <div class="brand-mark">S</div>
+        <div class="brand-mark">
+          <img src="/sttlink-logo.jpg" alt="STTlink">
+        </div>
         <div class="hero__copy">
           <h1>STTlink</h1>
           <p>简单、快速的订阅链接转换工具</p>
@@ -581,8 +583,14 @@ export default {
   background: rgba(255, 255, 255, .16);
   border: 1px solid rgba(255, 255, 255, .26);
   box-shadow: inset 0 1px rgba(255, 255, 255, .2);
-  font-size: 26px;
-  font-weight: 800;
+  overflow: hidden;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .hero__copy h1,
