@@ -7,9 +7,9 @@
           <h1>STTlink</h1>
           <p>简单、快速的订阅链接转换工具</p>
         </div>
-        <button class="project-link" type="button" @click="goToProject" aria-label="打开项目仓库">
-          <svg-icon icon-class="github" />
-          <span>GitHub</span>
+        <button class="project-link" type="button" @click="goToSttlink" aria-label="打开 STTlink 官网">
+          <img class="project-link__logo" src="/sttlink-logo.jpg" alt="STTlink">
+          <span>STTlink</span>
         </button>
       </div>
     </header>
@@ -352,8 +352,8 @@ export default {
       this.$message.success("Copied!");
     },
 
-    goToProject() {
-      window.open(CONSTANTS.PROJECT);
+    goToSttlink() {
+      window.open('https://sttgo.cc/', '_blank');
     },
 
     gotoGayhub() {
@@ -510,7 +510,7 @@ export default {
         message: h(
           "i",
           { style: "color: teal" },
-          "各种订阅链接（短链接服务除外）生成纯前端实现，无隐私问题。默认提供后端转换服务，隐私担忧者请自行搭建后端服务。"
+          "本服务由 STTlink 官方搭建，各种订阅链接（短链接服务除外）生成纯前端实现，无隐私问题，请放心使用。"
         )
       });
     },
@@ -617,6 +617,14 @@ export default {
   border: 1px solid rgba(255, 255, 255, .22);
   border-radius: 10px;
   cursor: pointer;
+}
+
+.project-link__logo {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: cover;
+  border-radius: 7px;
 }
 
 .page-shell {
